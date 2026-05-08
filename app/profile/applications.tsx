@@ -18,7 +18,8 @@ import {
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
 import * as Haptics from "expo-haptics";
-import { useThemeColors } from "constants/useThemeColors";
+import { useThemeColors } from "@/constants/useThemeColors";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 interface Application {
   id: string;
@@ -168,89 +169,95 @@ export default function ApplicationsScreen() {
   const webTopInset = Platform.OS === "web" ? 67 : 0;
 
   return (
-    <View style={styles.container}>
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: (Platform.OS === "web" ? webTopInset : insets.top) + 8,
-          },
-        ]}
-      >
-        <Pressable
-          style={styles.headerBtn}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.back();
-          }}
+    <ProtectedRoute>
+      <View style={styles.container}>
+        <View
+          style={[
+            styles.header,
+            {
+              paddingTop:
+                (Platform.OS === "web" ? webTopInset : insets.top) + 8,
+            },
+          ]}
         >
-          <Ionicons name="arrow-back" size={22} color={colors.text} />
-        </Pressable>
-        <Text style={styles.headerTitle}>My Applications</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingBottom:
-              Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16),
-          },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        {APPLICATIONS.map((app) => (
           <Pressable
-            key={app.id}
-            style={({ pressed }) => [styles.card, pressed && { opacity: 0.7 }]}
-            onPress={() =>
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-            }
+            style={styles.headerBtn}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.back();
+            }}
           >
-            <View style={styles.cardTop}>
-              <View
-                style={[
-                  styles.companyLogo,
-                  { backgroundColor: app.companyColor },
-                ]}
-              >
-                <Text style={styles.companyLogoText}>{app.companyLabel}</Text>
-              </View>
-              <View style={styles.cardInfo}>
-                <Text style={styles.cardTitle}>{app.title}</Text>
-                <Text style={styles.cardCompany}>{app.company}</Text>
-              </View>
-            </View>
-            <View style={styles.cardBottom}>
-              <View style={styles.dateRow}>
-                <Feather
-                  name="calendar"
-                  size={14}
-                  color={colors.textSecondary}
-                />
-                <Text style={styles.dateText}>{app.dateApplied}</Text>
-              </View>
-              <View
-                style={[
-                  styles.statusBadge,
-                  { backgroundColor: STATUS_COLORS[app.status].bg },
-                ]}
-              >
-                <Text
+            <Ionicons name="arrow-back" size={22} color={colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle}>My Applications</Text>
+          <View style={{ width: 40 }} />
+        </View>
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingBottom:
+                Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16),
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          {APPLICATIONS.map((app) => (
+            <Pressable
+              key={app.id}
+              style={({ pressed }) => [
+                styles.card,
+                pressed && { opacity: 0.7 },
+              ]}
+              onPress={() =>
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              }
+            >
+              <View style={styles.cardTop}>
+                <View
                   style={[
-                    styles.statusText,
-                    { color: STATUS_COLORS[app.status].text },
+                    styles.companyLogo,
+                    { backgroundColor: app.companyColor },
                   ]}
                 >
-                  {app.status}
-                </Text>
+                  <Text style={styles.companyLogoText}>{app.companyLabel}</Text>
+                </View>
+                <View style={styles.cardInfo}>
+                  <Text style={styles.cardTitle}>{app.title}</Text>
+                  <Text style={styles.cardCompany}>{app.company}</Text>
+                </View>
               </View>
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </View>
+              <View style={styles.cardBottom}>
+                <View style={styles.dateRow}>
+                  <Feather
+                    name="calendar"
+                    size={14}
+                    color={colors.textSecondary}
+                  />
+                  <Text style={styles.dateText}>{app.dateApplied}</Text>
+                </View>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    { backgroundColor: STATUS_COLORS[app.status].bg },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.statusText,
+                      { color: STATUS_COLORS[app.status].text },
+                    ]}
+                  >
+                    {app.status}
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
+    </ProtectedRoute>
   );
 }

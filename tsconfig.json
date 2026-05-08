@@ -4,8 +4,8 @@
     "baseUrl": ".",
     "strict": true,
     "paths": {
-      "@/*": ["./app/*"],
-      "@shared/*": ["./shared/*"]
+      "@/*": ["./*"],
+      "@/lib/api-client-react": ["../../lib/api-client-react"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]

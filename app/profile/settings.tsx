@@ -1,213 +1,349 @@
+import { Feather, Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import {
+  Alert,
+  Image,
+  Platform,
+  Pressable,
+  ScrollView,
   StyleSheet,
+  Switch,
   Text,
   View,
-  ScrollView,
-  Pressable,
-  Switch,
-  Platform,
 } from "react-native";
-import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Ionicons, Feather } from "@expo/vector-icons";
-import {
-  useFonts,
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from "@expo-google-fonts/inter";
-import * as Haptics from "expo-haptics";
-import { useTheme } from "contexts/ThemeContext";
-import { useThemeColors } from "constants/useThemeColors";
+
+import { useThemeColors } from "@/constants/useThemeColors";
+import { useAuthStore } from "@/stores/authStore";
+import { useResolvedTheme } from "@/stores/themeStore";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+
+type Row =
+  | {
+      kind: "link";
+      label: string;
+      icon: React.ComponentProps<typeof Ionicons>["name"];
+      sub?: string;
+      value?: string;
+      onPress: () => void;
+    }
+  | {
+      kind: "toggle";
+      label: string;
+      icon: React.ComponentProps<typeof Ionicons>["name"];
+      sub?: string;
+      value: boolean;
+      onChange: (v: boolean) => void;
+    };
 
 export default function SettingsScreen() {
-  const { colorScheme, setColorScheme } = useTheme();
   const colors = useThemeColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [locationServices, setLocationServices] = useState(false);
+  const user = useAuthStore((state) => state.user);
+  const signOut = useAuthStore((state) => state.signOut);
+  const { preference } = useResolvedTheme();
 
-  // Dark mode toggle reflects the actual resolved color scheme, not just preference
-  const isDarkMode = colorScheme === "dark";
-
-  const [fontsLoaded] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-  });
-
-  if (!fontsLoaded) return null;
+  const [pushEnabled, setPushEnabled] = useState(true);
+  const [emailEnabled, setEmailEnabled] = useState(true);
+  const [jobAlerts, setJobAlerts] = useState(true);
+  const [weeklyDigest, setWeeklyDigest] = useState(false);
 
   const webTopInset = Platform.OS === "web" ? 67 : 0;
 
-  const toggleItems = [
+  const themeLabel =
+    preference === "system"
+      ? "System"
+      : preference === "dark"
+        ? "Dark"
+        : "Light";
+
+  const accountRows: Row[] = [
     {
-      label: "Push Notifications",
-      icon: "notifications-outline" as const,
-      value: pushNotifications,
-      onToggle: setPushNotifications,
+      kind: "link",
+      label: "Edit profile",
+      icon: "person-outline",
+      sub: "Name, photo, contact details",
+      onPress: () => router.push("/profile/edit" as never),
     },
     {
-      label: "Email Notifications",
-      icon: "mail-outline" as const,
-      value: emailNotifications,
-      onToggle: setEmailNotifications,
+      kind: "link",
+      label: "Resume",
+      icon: "document-text-outline",
+      sub: "Upload and manage your resume",
+      onPress: () => router.push("/profile/resume"),
     },
     {
-      label: "Dark Mode",
-      icon: "moon-outline" as const,
-      value: isDarkMode,
-      onToggle: (val: boolean) => setColorScheme(val ? "dark" : "light"),
+      kind: "link",
+      label: "Applications",
+      icon: "briefcase-outline",
+      sub: "Track your applied jobs",
+      onPress: () => router.push("/profile/applications"),
     },
     {
-      label: "Location Services",
-      icon: "location-outline" as const,
-      value: locationServices,
-      onToggle: setLocationServices,
+      kind: "link",
+      label: "Job preferences",
+      icon: "options-outline",
+      sub: "Roles, type, salary",
+      onPress: () => router.push("/profile/preferences" as never),
     },
   ];
 
-  const accountItems = [
-    { label: "Change Password", icon: "lock-closed-outline" as const },
-    { label: "Privacy", icon: "shield-outline" as const },
+  const securityRows: Row[] = [
+    {
+      kind: "link",
+      label: "Security",
+      icon: "lock-closed-outline",
+      sub: "Password, 2FA, sessions",
+      onPress: () => router.push("/profile/security"),
+    },
+    {
+      kind: "link",
+      label: "Privacy",
+      icon: "shield-checkmark-outline",
+      sub: "Visibility, data, sharing",
+      onPress: () => router.push("/profile/privacy"),
+    },
   ];
 
-  const aboutItems = [
-    { label: "Terms of Service", icon: "document-text-outline" as const },
-    { label: "Privacy Policy", icon: "reader-outline" as const },
-    { label: "App Version 1.0.0", icon: "information-circle-outline" as const },
+  const notifRows: Row[] = [
+    {
+      kind: "toggle",
+      label: "Push notifications",
+      icon: "notifications-outline",
+      sub: "On this device",
+      value: pushEnabled,
+      onChange: setPushEnabled,
+    },
+    {
+      kind: "toggle",
+      label: "Email notifications",
+      icon: "mail-outline",
+      sub: "Updates to your inbox",
+      value: emailEnabled,
+      onChange: setEmailEnabled,
+    },
+    {
+      kind: "toggle",
+      label: "Job alerts",
+      icon: "flash-outline",
+      sub: "New roles matching you",
+      value: jobAlerts,
+      onChange: setJobAlerts,
+    },
+    {
+      kind: "toggle",
+      label: "Weekly digest",
+      icon: "calendar-outline",
+      sub: "Summary every Monday",
+      value: weeklyDigest,
+      onChange: setWeeklyDigest,
+    },
+    {
+      kind: "link",
+      label: "Notification center",
+      icon: "list-outline",
+      sub: "Recent updates",
+      onPress: () => router.push("/profile/notifications"),
+    },
   ];
+
+  const appRows: Row[] = [
+    {
+      kind: "link",
+      label: "Appearance",
+      icon: "color-palette-outline",
+      value: themeLabel,
+      onPress: () => router.push("/profile/appearance"),
+    },
+    {
+      kind: "link",
+      label: "Language",
+      icon: "language-outline",
+      value: "English",
+      onPress: () => router.push("/profile/language"),
+    },
+  ];
+
+  const aboutRows: Row[] = [
+    {
+      kind: "link",
+      label: "Help & support",
+      icon: "help-circle-outline",
+      onPress: () => router.push("/profile/help"),
+    },
+    {
+      kind: "link",
+      label: "About Hive",
+      icon: "information-circle-outline",
+      onPress: () => router.push("/profile/about"),
+    },
+  ];
+
+  const renderRow = (row: Row, isLast: boolean) => {
+    const RowContent = (
+      <View style={[styles.row, !isLast && styles.rowBorder]}>
+        <View style={styles.rowLeft}>
+          <View style={styles.iconWrap}>
+            <Ionicons name={row.icon} size={20} color={colors.tint} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.rowTitle}>{row.label}</Text>
+            {row.sub ? <Text style={styles.rowSub}>{row.sub}</Text> : null}
+          </View>
+        </View>
+        {row.kind === "toggle" ? (
+          <Switch
+            value={row.value}
+            onValueChange={(v) => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              row.onChange(v);
+            }}
+            trackColor={{ false: colors.border, true: colors.tint }}
+            thumbColor="#FFFFFF"
+          />
+        ) : (
+          <View style={styles.rowRight}>
+            {row.value ? (
+              <Text style={styles.rowValue}>{row.value}</Text>
+            ) : null}
+            <Feather
+              name="chevron-right"
+              size={18}
+              color={colors.textSecondary}
+            />
+          </View>
+        )}
+      </View>
+    );
+
+    if (row.kind === "link") {
+      return (
+        <Pressable
+          key={row.label}
+          style={({ pressed }) => [pressed && { opacity: 0.6 }]}
+          onPress={row.onPress}
+        >
+          {RowContent}
+        </Pressable>
+      );
+    }
+    return <View key={row.label}>{RowContent}</View>;
+  };
+
+  const renderSection = (title: string, rows: Row[]) => (
+    <View style={{ marginBottom: 24 }}>
+      <Text style={styles.sectionLabel}>{title}</Text>
+      <View style={styles.card}>
+        {rows.map((r, idx) => renderRow(r, idx === rows.length - 1))}
+      </View>
+    </View>
+  );
 
   return (
-    <View style={styles.container}>
-      <View
-        style={[
-          styles.header,
-          {
-            paddingTop: (Platform.OS === "web" ? webTopInset : insets.top) + 8,
-          },
-        ]}
-      >
-        <Pressable
-          style={styles.headerBtn}
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.back();
-          }}
+    <ProtectedRoute>
+      <View style={styles.container}>
+        <View
+          style={[
+            styles.header,
+            {
+              paddingTop:
+                (Platform.OS === "web" ? webTopInset : insets.top) + 8,
+            },
+          ]}
         >
-          <Ionicons name="arrow-back" size={22} color={colors.text} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <View style={{ width: 40 }} />
-      </View>
+          <Pressable style={styles.headerBtn} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={22} color={colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Settings</Text>
+          <View style={{ width: 40 }} />
+        </View>
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingBottom:
-              Platform.OS === "web" ? 34 : Math.max(insets.bottom, 16),
-          },
-        ]}
-        showsVerticalScrollIndicator={false}
-      >
-        <Text style={styles.sectionLabel}>Preferences</Text>
-        <View style={styles.sectionCard}>
-          {toggleItems.map((item, index) => (
-            <View
-              key={item.label}
-              style={[
-                styles.settingRow,
-                index < toggleItems.length - 1 && styles.settingRowBorder,
-              ]}
-            >
-              <View style={styles.settingLeft}>
-                <View style={styles.settingIconContainer}>
-                  <Ionicons name={item.icon} size={20} color={colors.tint} />
-                </View>
-                <Text style={styles.settingLabel}>{item.label}</Text>
+        <ScrollView
+          contentContainerStyle={[
+            styles.content,
+            {
+              paddingBottom:
+                Platform.OS === "web" ? 60 : Math.max(insets.bottom, 24),
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+        >
+          <Pressable
+            style={({ pressed }) => [
+              styles.profileCard,
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={() => router.push("/profile/edit" as never)}
+          >
+            {user?.avatarUri ? (
+              <Image source={{ uri: user.avatarUri }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {(user?.name ?? "U").charAt(0).toUpperCase()}
+                </Text>
               </View>
-              <Switch
-                value={item.value}
-                onValueChange={(val) => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  item.onToggle(val);
-                }}
-                trackColor={{
-                  false: colors.border,
-                  true: colors.tint,
-                }}
-                thumbColor="#FFFFFF"
-              />
+            )}
+            <View style={{ flex: 1 }}>
+              <Text style={styles.profileName} numberOfLines={1}>
+                {user?.name ?? "Sign in"}
+              </Text>
+              <Text style={styles.profileMeta} numberOfLines={1}>
+                {user?.email ?? "Tap to sign in"}
+              </Text>
+              {user?.title ? (
+                <Text style={styles.profileTitle} numberOfLines={1}>
+                  {user.title}
+                </Text>
+              ) : null}
             </View>
-          ))}
-        </View>
+            <Feather
+              name="chevron-right"
+              size={20}
+              color={colors.textSecondary}
+            />
+          </Pressable>
 
-        <Text style={styles.sectionLabel}>Account</Text>
-        <View style={styles.sectionCard}>
-          {accountItems.map((item, index) => (
-            <Pressable
-              key={item.label}
-              style={({ pressed }) => [
-                styles.settingRow,
-                index < accountItems.length - 1 && styles.settingRowBorder,
-                pressed && { opacity: 0.6 },
-              ]}
-              onPress={() =>
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              }
-            >
-              <View style={styles.settingLeft}>
-                <View style={styles.settingIconContainer}>
-                  <Ionicons name={item.icon} size={20} color={colors.tint} />
-                </View>
-                <Text style={styles.settingLabel}>{item.label}</Text>
-              </View>
-              <Feather
-                name="chevron-right"
-                size={18}
-                color={colors.textSecondary}
-              />
-            </Pressable>
-          ))}
-        </View>
+          {renderSection("Account", accountRows)}
+          {renderSection("Privacy & security", securityRows)}
+          {renderSection("Notifications", notifRows)}
+          {renderSection("App", appRows)}
+          {renderSection("Support", aboutRows)}
 
-        <Text style={styles.sectionLabel}>About</Text>
-        <View style={styles.sectionCard}>
-          {aboutItems.map((item, index) => (
-            <Pressable
-              key={item.label}
-              style={({ pressed }) => [
-                styles.settingRow,
-                index < aboutItems.length - 1 && styles.settingRowBorder,
-                pressed && { opacity: 0.6 },
-              ]}
-              onPress={() =>
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              }
-            >
-              <View style={styles.settingLeft}>
-                <View style={styles.settingIconContainer}>
-                  <Ionicons name={item.icon} size={20} color={colors.tint} />
-                </View>
-                <Text style={styles.settingLabel}>{item.label}</Text>
-              </View>
-              <Feather
-                name="chevron-right"
-                size={18}
-                color={colors.textSecondary}
-              />
-            </Pressable>
-          ))}
-        </View>
-      </ScrollView>
-    </View>
+          <Pressable
+            style={({ pressed }) => [
+              styles.signOutBtn,
+              pressed && { opacity: 0.7 },
+            ]}
+            onPress={() =>
+              Alert.alert(
+                "Sign out?",
+                "You'll need to sign in again next time.",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Sign out",
+                    style: "destructive",
+                    onPress: async () => {
+                      await signOut();
+                      router.replace("/auth/welcome" as never);
+                    },
+                  },
+                ],
+              )
+            }
+          >
+            <Ionicons name="log-out-outline" size={18} color="#EF4444" />
+            <Text style={styles.signOutText}>Sign out</Text>
+          </Pressable>
+
+          <Text style={styles.footerText}>Hive · v2.4.1</Text>
+        </ScrollView>
+      </View>
+    </ProtectedRoute>
   );
 }
 
@@ -237,10 +373,50 @@ function createStyles(colors: ReturnType<typeof useThemeColors>) {
       fontFamily: "Inter_600SemiBold",
       color: colors.text,
     },
-    scrollView: { flex: 1 },
-    scrollContent: { paddingHorizontal: 20, paddingTop: 20 },
+    content: { padding: 20 },
+    profileCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+      backgroundColor: colors.surface,
+      borderRadius: 18,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 24,
+    },
+    avatar: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: colors.tintLight,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: {
+      fontSize: 22,
+      color: colors.tint,
+      fontFamily: "Inter_700Bold",
+    },
+    profileName: {
+      fontSize: 17,
+      color: colors.text,
+      fontFamily: "Inter_600SemiBold",
+    },
+    profileMeta: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      fontFamily: "Inter_400Regular",
+      marginTop: 2,
+    },
+    profileTitle: {
+      fontSize: 12,
+      color: colors.tint,
+      fontFamily: "Inter_500Medium",
+      marginTop: 4,
+    },
     sectionLabel: {
-      fontSize: 14,
+      fontSize: 13,
       fontFamily: "Inter_600SemiBold",
       color: colors.textSecondary,
       marginBottom: 10,
@@ -248,39 +424,73 @@ function createStyles(colors: ReturnType<typeof useThemeColors>) {
       textTransform: "uppercase" as const,
       letterSpacing: 0.5,
     },
-    sectionCard: {
+    card: {
       backgroundColor: colors.surface,
       borderRadius: 16,
       borderWidth: 1,
       borderColor: colors.border,
       overflow: "hidden",
-      marginBottom: 24,
     },
-    settingRow: {
+    row: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+      paddingHorizontal: 14,
       paddingVertical: 14,
-      paddingHorizontal: 16,
+      gap: 10,
     },
-    settingRowBorder: {
+    rowBorder: {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    settingLeft: { flexDirection: "row", alignItems: "center", flex: 1 },
-    settingIconContainer: {
+    rowLeft: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
+    iconWrap: {
       width: 36,
       height: 36,
       borderRadius: 10,
       backgroundColor: colors.tintLight,
       alignItems: "center",
       justifyContent: "center",
-      marginRight: 14,
     },
-    settingLabel: {
+    rowTitle: {
       fontSize: 15,
-      fontFamily: "Inter_500Medium",
       color: colors.text,
+      fontFamily: "Inter_600SemiBold",
+    },
+    rowSub: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      fontFamily: "Inter_400Regular",
+      marginTop: 2,
+    },
+    rowRight: { flexDirection: "row", alignItems: "center", gap: 6 },
+    rowValue: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      fontFamily: "Inter_500Medium",
+    },
+    signOutBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      paddingVertical: 14,
+      borderRadius: 14,
+      borderWidth: 1,
+      borderColor: "#FEE2E2",
+      backgroundColor: "#FEF2F2",
+      marginBottom: 16,
+    },
+    signOutText: {
+      color: "#EF4444",
+      fontSize: 15,
+      fontFamily: "Inter_600SemiBold",
+    },
+    footerText: {
+      textAlign: "center",
+      color: colors.textSecondary,
+      fontSize: 12,
+      fontFamily: "Inter_400Regular",
     },
   });
 }

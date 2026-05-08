@@ -8,11 +8,17 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
-import { useThemeColors } from "constants/useThemeColors";
+import { useThemeColors } from "@/constants/useThemeColors";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { hp } from "@/utils/helper";
 
 function createStyles(colors: ReturnType<typeof useThemeColors>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background },
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: Platform.OS === "android" ? hp(4) : 0,
+    },
     scrollContent: { paddingHorizontal: 20, flex: 1 },
     title: {
       fontSize: 26,
@@ -68,30 +74,32 @@ export default function BookmarksScreen() {
   const webTopInset = Platform.OS === "web" ? 67 : 0;
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          {
-            paddingTop: (Platform.OS === "web" ? webTopInset : 0) + 16,
-            paddingBottom: Platform.OS === "web" ? 84 + 34 : 120,
-          },
-        ]}
-        showsVerticalScrollIndicator={false}
-        contentInsetAdjustmentBehavior="automatic"
-      >
-        <Text style={styles.title}>Saved Jobs</Text>
+    <ProtectedRoute>
+      <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingTop: (Platform.OS === "web" ? webTopInset : 0) + 16,
+              paddingBottom: Platform.OS === "web" ? 84 + 34 : 120,
+            },
+          ]}
+          showsVerticalScrollIndicator={false}
+          contentInsetAdjustmentBehavior="automatic"
+        >
+          <Text style={styles.title}>Saved Jobs</Text>
 
-        <View style={styles.emptyState}>
-          <View style={styles.emptyIconContainer}>
-            <Feather name="bookmark" size={48} color={colors.textSecondary} />
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconContainer}>
+              <Feather name="bookmark" size={48} color={colors.textSecondary} />
+            </View>
+            <Text style={styles.emptyTitle}>No saved jobs yet</Text>
+            <Text style={styles.emptyText}>
+              Tap the bookmark icon on any job to save it here for later
+            </Text>
           </View>
-          <Text style={styles.emptyTitle}>No saved jobs yet</Text>
-          <Text style={styles.emptyText}>
-            Tap the bookmark icon on any job to save it here for later
-          </Text>
-        </View>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </ProtectedRoute>
   );
 }

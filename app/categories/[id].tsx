@@ -18,7 +18,7 @@ import {
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
 import * as Haptics from "expo-haptics";
-import { useThemeColors } from "constants/useThemeColors";
+import { useThemeColors } from "@/constants/useThemeColors";
 
 interface Job {
   id: string;

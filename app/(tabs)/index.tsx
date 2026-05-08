@@ -20,7 +20,8 @@ import {
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
 import * as Haptics from "expo-haptics";
-import { useThemeColors } from "constants/useThemeColors";
+import { useThemeColors } from "@/constants/useThemeColors";
+import { useAuthStore } from "@/stores/authStore";
 
 interface Job {
   id: string;
@@ -140,6 +141,90 @@ const INITIAL_JOBS: Job[] = [
     salary: "INR 20.000.000",
     tags: ["Full Time", "Hybrid"],
     timeAgo: "1 day ago",
+    bookmarked: false,
+  },
+  {
+    id: "6",
+    title: "Data Scientist",
+    company: "AnalytiQ Labs",
+    companyColor: "#0EA5E9",
+    companyLabel: "AnalytiQ",
+    location: "Singapore",
+    salary: "SGD 8.500 / mo",
+    tags: ["Remote", "Full Time"],
+    timeAgo: "6 hours ago",
+    bookmarked: false,
+  },
+  {
+    id: "7",
+    title: "Product Manager",
+    company: "StartupHub Asia",
+    companyColor: "#10B981",
+    companyLabel: "StartupHub",
+    location: "Hong Kong",
+    salary: "HKD 60.000 / mo",
+    tags: ["Hybrid", "Full Time"],
+    timeAgo: "12 hours ago",
+    bookmarked: true,
+  },
+  {
+    id: "8",
+    title: "iOS Engineer",
+    company: "AppForge Studio",
+    companyColor: "#6366F1",
+    companyLabel: "AppForge",
+    location: "Tokyo, Japan",
+    salary: "JPY 9.000.000",
+    tags: ["Full Time", "Onsite"],
+    timeAgo: "1 day ago",
+    bookmarked: false,
+  },
+  {
+    id: "9",
+    title: "Marketing Lead",
+    company: "NexGen Media",
+    companyColor: "#F97316",
+    companyLabel: "NexGen",
+    location: "Sydney, Australia",
+    salary: "AUD 110.000",
+    tags: ["Remote", "Full Time"],
+    timeAgo: "2 days ago",
+    bookmarked: false,
+  },
+  {
+    id: "10",
+    title: "QA Automation Engineer",
+    company: "QualityFirst Inc.",
+    companyColor: "#14B8A6",
+    companyLabel: "QFirst",
+    location: "Manila, Philippines",
+    salary: "PHP 120.000 / mo",
+    tags: ["Full Time", "Remote"],
+    timeAgo: "4 days ago",
+    bookmarked: false,
+  },
+  {
+    id: "11",
+    title: "Mobile App Developer",
+    company: "Bullshit Incorporated",
+    companyColor: "#1E3A5F",
+    companyLabel: "Bullshit\nInc.",
+    location: "Bangkok, Thailand",
+    salary: "THB 95.000 / mo",
+    tags: ["Hybrid", "Part-Time"],
+    timeAgo: "3 days ago",
+    bookmarked: false,
+  },
+  {
+    id: "12",
+    title: "Cloud Solutions Architect",
+    company: "Cloudify Networks",
+    companyColor: "#8B5CF6",
+    companyLabel: "Cloudify",
+    location: "Remote",
+    salary: "USD 145.000",
+    tags: ["Remote", "Full Time"],
+    timeAgo: "1 week ago",
     bookmarked: false,
   },
 ];
@@ -436,9 +521,12 @@ export default function HomeScreen() {
   const colors = useThemeColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
+  const user = useAuthStore((state) => state.user);
   const [activeFilter, setActiveFilter] = useState("All");
   const [jobs, setJobs] = useState<Job[]>(INITIAL_JOBS);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const firstName = (user?.name ?? "there").split(" ")[0];
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -474,7 +562,7 @@ export default function HomeScreen() {
           },
         ]}
       >
-        <Text style={styles.welcomeText}>Welcome, King Grey!</Text>
+        <Text style={styles.welcomeText}>Welcome, {firstName}!</Text>
 
         <View style={styles.searchRow}>
           <View style={styles.searchBar}>

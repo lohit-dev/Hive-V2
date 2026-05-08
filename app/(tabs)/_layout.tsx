@@ -1,35 +1,42 @@
 import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs } from "expo-router";
-import { NativeTabs, Icon, Label } from "expo-router/unstable-native-tabs";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { BlurView } from "expo-blur";
 import { Platform, StyleSheet, useColorScheme, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-
-import { useThemeColors } from "constants/useThemeColors";
+import { useThemeColors } from "@/constants/useThemeColors";
 
 function NativeTabLayout() {
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
-        <Icon sf={{ default: "house", selected: "house.fill" }} />
-        <Label>Home</Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "house", selected: "house.fill" }}
+        />
+        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="jobs">
-        <Icon sf={{ default: "briefcase", selected: "briefcase.fill" }} />
-        <Label>Jobs</Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "briefcase", selected: "briefcase.fill" }}
+        />
+        <NativeTabs.Trigger.Label>Jobs</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="search" role="search">
-        <Icon sf="magnifyingglass" />
-        <Label>Search</Label>
+        <NativeTabs.Trigger.Icon sf="magnifyingglass" />
+        <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="bookmarks">
-        <Icon sf={{ default: "bookmark", selected: "bookmark.fill" }} />
-        <Label>Saved</Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "bookmark", selected: "bookmark.fill" }}
+        />
+        <NativeTabs.Trigger.Label>Saved</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
-        <Icon sf={{ default: "person", selected: "person.fill" }} />
-        <Label>Profile</Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "person", selected: "person.fill" }}
+        />
+        <NativeTabs.Trigger.Label>Profile</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -165,8 +172,11 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
-  if (isLiquidGlassAvailable()) {
+  // Use NativeTabs only on iOS where SF Symbols work
+  if (Platform.OS === "ios" && isLiquidGlassAvailable()) {
     return <NativeTabLayout />;
   }
+
+  // Use ClassicTabLayout on Android and Web (with Ionicons)
   return <ClassicTabLayout />;
 }

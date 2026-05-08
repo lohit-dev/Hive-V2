@@ -1,11 +1,13 @@
 import { useMemo } from "react";
 import {
+  SafeAreaView,
   StyleSheet,
   Text,
   View,
   ScrollView,
   Pressable,
   Platform,
+  Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -18,7 +20,10 @@ import {
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
 import * as Haptics from "expo-haptics";
-import { useThemeColors } from "constants/useThemeColors";
+import { useThemeColors } from "@/constants/useThemeColors";
+import { useAuthStore } from "@/stores/authStore";
+import { useNotificationStore } from "@/stores/notificationStore";
+import { hp } from "@/utils/helper";
 
 const MENU_ITEMS = [
   {
@@ -36,7 +41,7 @@ const MENU_ITEMS = [
   {
     icon: "bell" as const,
     label: "Notifications",
-    badge: "5",
+    badge: null, // Will be set dynamically
     href: "/profile/notifications",
   },
   {
@@ -55,7 +60,11 @@ const MENU_ITEMS = [
 
 function createStyles(colors: ReturnType<typeof useThemeColors>) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: colors.background },
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingTop: Platform.OS === "android" ? hp(4) : 0,
+    },
     scrollContent: { paddingHorizontal: 20 },
     title: {
       fontSize: 26,
@@ -82,19 +91,6 @@ function createStyles(colors: ReturnType<typeof useThemeColors>) {
       justifyContent: "center",
     },
     avatarText: { fontSize: 24, fontFamily: "Inter_700Bold", color: "#FFFFFF" },
-    editAvatarBtn: {
-      position: "absolute",
-      bottom: 0,
-      right: -4,
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      backgroundColor: colors.text,
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 2,
-      borderColor: colors.surface,
-    },
     profileName: {
       fontSize: 20,
       fontFamily: "Inter_700Bold",
@@ -195,6 +191,9 @@ export default function ProfileScreen() {
   const colors = useThemeColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
+  const user = useAuthStore((state) => state.user);
+  const signOut = useAuthStore((state) => state.signOut);
+  const unreadCount = useNotificationStore((state) => state.unreadCount);
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -205,7 +204,26 @@ export default function ProfileScreen() {
 
   if (!fontsLoaded) return null;
 
+  const displayName = user?.name ?? "Guest";
+  const displayTitle = user?.title ?? "Add a job title";
+  const initials = displayName
+    .split(" ")
+    .map((p) => p.charAt(0))
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+
   const webTopInset = Platform.OS === "web" ? 67 : 0;
+
+  const menuItems = MENU_ITEMS.map((item) => {
+    if (item.label === "Notifications") {
+      return {
+        ...item,
+        badge: unreadCount > 0 ? String(unreadCount) : null,
+      };
+    }
+    return item;
+  });
 
   return (
     <View style={styles.container}>
@@ -224,20 +242,16 @@ export default function ProfileScreen() {
 
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>KG</Text>
-            </View>
-            <Pressable
-              style={styles.editAvatarBtn}
-              onPress={() =>
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              }
-            >
-              <Feather name="camera" size={14} color={colors.textSecondary} />
-            </Pressable>
+            {user?.avatarUri ? (
+              <Image source={{ uri: user.avatarUri }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{initials}</Text>
+              </View>
+            )}
           </View>
-          <Text style={styles.profileName}>King Grey</Text>
-          <Text style={styles.profileRole}>Full Stack Developer</Text>
+          <Text style={styles.profileName}>{displayName}</Text>
+          <Text style={styles.profileRole}>{displayTitle}</Text>
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
               <Text style={styles.statValue}>12</Text>
@@ -257,7 +271,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.menuContainer}>
-          {MENU_ITEMS.map((item) => (
+          {menuItems.map((item) => (
             <Pressable
               key={item.label}
               style={({ pressed }) => [
@@ -294,9 +308,11 @@ export default function ProfileScreen() {
             styles.logoutBtn,
             pressed && { opacity: 0.7 },
           ]}
-          onPress={() =>
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-          }
+          onPress={async () => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            await signOut();
+            router.replace("/auth/welcome" as never);
+          }}
         >
           <Feather name="log-out" size={18} color="#DC2626" />
           <Text style={styles.logoutText}>Log Out</Text>

@@ -18,7 +18,7 @@ import {
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
 import * as Haptics from "expo-haptics";
-import { useThemeColors } from "constants/useThemeColors";
+import { useThemeColors } from "@/constants/useThemeColors";
 
 interface FaqItem {
   question: string;
@@ -44,7 +44,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     question: "How do I contact support?",
     answer:
-      "You can reach our support team by emailing support@jobfinder.com or calling +62 21 5555 1234. Our team is available Monday to Friday, 9 AM to 6 PM.",
+      "You can reach our support team by emailing kinggreydev@gmail.com or calling +91 7075753289. Our team is available Monday to Friday, 9 AM to 6 PM.",
   },
 ];
 
@@ -149,6 +149,27 @@ function createStyles(colors: ReturnType<typeof useThemeColors>) {
       backgroundColor: colors.border,
       marginVertical: 8,
     },
+    legalCard: {
+      backgroundColor: colors.surface,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 16,
+      marginBottom: 24,
+    },
+    legalTitle: {
+      fontSize: 15,
+      fontFamily: "Inter_600SemiBold",
+      color: colors.text,
+      marginBottom: 8,
+    },
+    legalText: {
+      fontSize: 13,
+      fontFamily: "Inter_400Regular",
+      color: colors.textSecondary,
+      lineHeight: 20,
+      marginBottom: 6,
+    },
   });
 }
 
@@ -244,7 +265,7 @@ export default function HelpScreen() {
             </View>
             <View>
               <Text style={styles.contactLabel}>Email</Text>
-              <Text style={styles.contactValue}>support@jobfinder.com</Text>
+              <Text style={styles.contactValue}>kinggreydev@gmail.com</Text>
             </View>
           </View>
           <View style={styles.contactDivider} />
@@ -254,9 +275,28 @@ export default function HelpScreen() {
             </View>
             <View>
               <Text style={styles.contactLabel}>Phone</Text>
-              <Text style={styles.contactValue}>+62 21 5555 1234</Text>
+              <Text style={styles.contactValue}>+91 7075753289</Text>
             </View>
           </View>
+        </View>
+
+        <Text style={styles.sectionTitle}>Terms & Conditions</Text>
+        <View style={styles.legalCard}>
+          <Text style={styles.legalTitle}>Usage Terms</Text>
+          <Text style={styles.legalText}>
+            By using Hive, you agree to provide accurate profile information and
+            use the platform responsibly. Do not post misleading, abusive, or
+            unlawful content.
+          </Text>
+          <Text style={styles.legalText}>
+            Hive helps connect candidates and employers, but we do not guarantee
+            interview calls, offers, or hiring outcomes.
+          </Text>
+          <Text style={styles.legalText}>
+            Your data is used only to deliver job-matching features and improve
+            the app experience. You can request account updates or deletion by
+            contacting support.
+          </Text>
         </View>
       </ScrollView>
     </View>

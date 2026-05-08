@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,6 +6,8 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  TextInput,
+  Keyboard,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,7 +20,7 @@ import {
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
 import * as Haptics from "expo-haptics";
-import { useThemeColors } from "constants/useThemeColors";
+import { useThemeColors } from "@/constants/useThemeColors";
 
 interface Job {
   id: string;
@@ -119,6 +121,17 @@ function createStyles(colors: ReturnType<typeof useThemeColors>) {
       backgroundColor: colors.searchBg,
       borderRadius: 12,
     },
+    queryRowEditing: {
+      borderWidth: 1,
+      borderColor: colors.tint,
+    },
+    queryInput: {
+      flex: 1,
+      fontSize: 14,
+      fontFamily: "Inter_500Medium",
+      color: colors.text,
+      paddingVertical: 0,
+    },
     queryText: {
       fontSize: 14,
       fontFamily: "Inter_500Medium",
@@ -216,6 +229,9 @@ export default function SearchResultsScreen() {
   const { q } = useLocalSearchParams<{ q: string }>();
   const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState("All");
+  const [isEditing, setIsEditing] = useState(false);
+  const [searchText, setSearchText] = useState(q ?? "");
+  const inputRef = useRef<TextInput>(null);
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -228,6 +244,23 @@ export default function SearchResultsScreen() {
 
   const webTopInset = Platform.OS === "web" ? 67 : 0;
   const query = q ?? "";
+
+  const handleSearch = () => {
+    if (searchText.trim()) {
+      Keyboard.dismiss();
+      setIsEditing(false);
+      router.push({
+        pathname: "/search-results",
+        params: { q: searchText.trim() },
+      });
+    }
+  };
+
+  const handleEditPress = () => {
+    setIsEditing(true);
+    setSearchText(query);
+    setTimeout(() => inputRef.current?.focus(), 100);
+  };
 
   return (
     <View style={styles.container}>
@@ -264,12 +297,49 @@ export default function SearchResultsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {query.length > 0 && (
-          <View style={styles.queryRow}>
+          <Pressable
+            style={[styles.queryRow, isEditing && styles.queryRowEditing]}
+            onPress={handleEditPress}
+            disabled={isEditing}
+          >
             <Feather name="search" size={16} color={colors.textSecondary} />
-            <Text style={styles.queryText}>
-              Results for &quot;{query}&quot;
-            </Text>
-          </View>
+            {isEditing ? (
+              <>
+                <TextInput
+                  ref={inputRef}
+                  style={styles.queryInput}
+                  value={searchText}
+                  onChangeText={setSearchText}
+                  onSubmitEditing={handleSearch}
+                  onBlur={() => setIsEditing(false)}
+                  returnKeyType="search"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  selectTextOnFocus
+                />
+                <Pressable
+                  onPress={() => {
+                    setIsEditing(false);
+                    setSearchText(query);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                >
+                  <Ionicons
+                    name="close-circle"
+                    size={16}
+                    color={colors.textSecondary}
+                  />
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text style={styles.queryText}>
+                  Results for &quot;{query}&quot;
+                </Text>
+                <Feather name="edit-2" size={14} color={colors.textSecondary} />
+              </>
+            )}
+          </Pressable>
         )}
 
         <ScrollView

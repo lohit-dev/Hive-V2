@@ -1,9 +1,9 @@
-import { useTheme } from "contexts/ThemeContext";
+import { useResolvedTheme } from "@/stores/themeStore";
 import Colors from "./colors";
 
 export type ColorScheme = "light" | "dark";
 
 export function useThemeColors() {
-  const { colorScheme } = useTheme();
+  const { colorScheme } = useResolvedTheme();
   return colorScheme === "dark" ? Colors.dark : Colors.light;
 }

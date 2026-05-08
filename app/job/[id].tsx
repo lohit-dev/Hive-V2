@@ -18,7 +18,8 @@ import {
   Inter_700Bold,
 } from "@expo-google-fonts/inter";
 import * as Haptics from "expo-haptics";
-import { useThemeColors } from "constants/useThemeColors";
+import { useThemeColors } from "@/constants/useThemeColors";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 interface Job {
   id: string;
@@ -549,6 +550,7 @@ export default function JobDetailScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
+  const { requireAuth } = useRequireAuth();
   const [bookmarked, setBookmarked] = useState(false);
 
   const [fontsLoaded] = useFonts({
@@ -714,9 +716,19 @@ export default function JobDetailScreen() {
             styles.applyButton,
             pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] },
           ]}
-          onPress={() =>
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-          }
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            requireAuth(() => {
+              router.push({
+                pathname: "/job/applied" as never,
+                params: {
+                  title: job.title,
+                  company: job.company,
+                  location: job.location,
+                },
+              });
+            });
+          }}
         >
           <Text style={styles.applyButtonText}>Apply Now</Text>
           <Feather name="arrow-right" size={18} color="#FFFFFF" />
