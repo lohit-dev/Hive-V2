@@ -24,6 +24,11 @@ import { useThemeColors } from "@/constants/useThemeColors";
 import { useAuthStore } from "@/stores/authStore";
 import { useNotificationStore } from "@/stores/notificationStore";
 import { hp } from "@/utils/helper";
+import {
+  FadeInView,
+  ScaleInView,
+  AnimatedPressable,
+} from "@/components/animated";
 
 const MENU_ITEMS = [
   {
@@ -238,85 +243,92 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentInsetAdjustmentBehavior="automatic"
       >
-        <Text style={styles.title}>Profile</Text>
+        <FadeInView delay={0} fromY={-20}>
+          <Text style={styles.title}>Profile</Text>
+        </FadeInView>
 
-        <View style={styles.profileCard}>
-          <View style={styles.avatarContainer}>
-            {user?.avatarUri ? (
-              <Image source={{ uri: user.avatarUri }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{initials}</Text>
+        <ScaleInView delay={100} fromScale={0.9}>
+          <View style={styles.profileCard}>
+            <View style={styles.avatarContainer}>
+              {user?.avatarUri ? (
+                <Image source={{ uri: user.avatarUri }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>{initials}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.profileName}>{displayName}</Text>
+            <Text style={styles.profileRole}>{displayTitle}</Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>12</Text>
+                <Text style={styles.statLabel}>Applied</Text>
               </View>
-            )}
-          </View>
-          <Text style={styles.profileName}>{displayName}</Text>
-          <Text style={styles.profileRole}>{displayTitle}</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>12</Text>
-              <Text style={styles.statLabel}>Applied</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>3</Text>
-              <Text style={styles.statLabel}>Interviews</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>8</Text>
-              <Text style={styles.statLabel}>Saved</Text>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>3</Text>
+                <Text style={styles.statLabel}>Interviews</Text>
+              </View>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Text style={styles.statValue}>8</Text>
+                <Text style={styles.statLabel}>Saved</Text>
+              </View>
             </View>
           </View>
-        </View>
+        </ScaleInView>
 
-        <View style={styles.menuContainer}>
-          {menuItems.map((item) => (
-            <Pressable
-              key={item.label}
-              style={({ pressed }) => [
-                styles.menuItem,
-                pressed && { opacity: 0.6 },
-              ]}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                router.push(item.href as never);
-              }}
-            >
-              <View style={styles.menuIconContainer}>
-                <Feather name={item.icon} size={20} color={colors.tint} />
-              </View>
-              <Text style={styles.menuLabel}>{item.label}</Text>
-              <View style={styles.menuRight}>
-                {item.badge && (
-                  <View style={styles.menuBadge}>
-                    <Text style={styles.menuBadgeText}>{item.badge}</Text>
+        <FadeInView delay={200} fromY={20}>
+          <View style={styles.menuContainer}>
+            {menuItems.map((item, idx) => (
+              <FadeInView key={item.label} delay={250 + idx * 40} fromY={10}>
+                <AnimatedPressable
+                  style={styles.menuItem}
+                  scaleValue={0.97}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    router.push(item.href as never);
+                  }}
+                >
+                  <View style={styles.menuIconContainer}>
+                    <Feather name={item.icon} size={20} color={colors.tint} />
                   </View>
-                )}
-                <Feather
-                  name="chevron-right"
-                  size={18}
-                  color={colors.textSecondary}
-                />
-              </View>
-            </Pressable>
-          ))}
-        </View>
+                  <Text style={styles.menuLabel}>{item.label}</Text>
+                  <View style={styles.menuRight}>
+                    {item.badge && (
+                      <ScaleInView delay={0} fromScale={0}>
+                        <View style={styles.menuBadge}>
+                          <Text style={styles.menuBadgeText}>{item.badge}</Text>
+                        </View>
+                      </ScaleInView>
+                    )}
+                    <Feather
+                      name="chevron-right"
+                      size={18}
+                      color={colors.textSecondary}
+                    />
+                  </View>
+                </AnimatedPressable>
+              </FadeInView>
+            ))}
+          </View>
+        </FadeInView>
 
-        <Pressable
-          style={({ pressed }) => [
-            styles.logoutBtn,
-            pressed && { opacity: 0.7 },
-          ]}
-          onPress={async () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            await signOut();
-            router.replace("/auth/welcome" as never);
-          }}
-        >
-          <Feather name="log-out" size={18} color="#DC2626" />
-          <Text style={styles.logoutText}>Log Out</Text>
-        </Pressable>
+        <FadeInView delay={450} fromY={20}>
+          <AnimatedPressable
+            style={styles.logoutBtn}
+            scaleValue={0.96}
+            onPress={async () => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              await signOut();
+              router.replace("/auth/welcome" as never);
+            }}
+          >
+            <Feather name="log-out" size={18} color="#DC2626" />
+            <Text style={styles.logoutText}>Log Out</Text>
+          </AnimatedPressable>
+        </FadeInView>
       </ScrollView>
     </View>
   );

@@ -9,7 +9,10 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.myapp"
+      "bundleIdentifier": "com.myapp",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.myapp",
@@ -38,6 +41,15 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": "https://lohit.xyz/"
+      },
+      "eas": {
+        "projectId": "83bd02a9-793b-4c79-a727-358972abbd2c"
+      }
+    },
+    "owner": "king_grey"
   }
 }
